@@ -1,0 +1,13 @@
+{
+  "name": "contribution-history",
+  "version": "1.0.0",
+  "description": "Automated activity and contribution tracker",
+  "type": "module",
+  "main": "generate.js",
+  "scripts": {
+    "generate": "node generate.js"
+  },
+  "keywords": [],
+  "author": "Scempyyy",
+  "license": "ISC"
+}
