@@ -13,40 +13,39 @@ try {
   // Ignore if already main
 }
 
-console.log('Generating realistic commit history for the past year...');
+console.log('Generating high-density contribution activity for the past year...');
 
 const now = new Date();
 const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
-// Generate list of dates with commit counts
+// Generate list of dates with commit counts for dense activity
 const commitsToMake = [];
 
 for (let d = new Date(oneYearAgo); d <= now; d.setDate(d.getDate() + 1)) {
   const dayOfWeek = d.getDay(); // 0 is Sunday, 6 is Saturday
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-  // Weekdays: 65% chance of commits; Weekends: 30% chance
-  const commitChance = isWeekend ? 0.30 : 0.65;
+  // 92% chance on weekdays, 65% chance on weekends
+  const commitChance = isWeekend ? 0.65 : 0.92;
   if (Math.random() > commitChance) {
     continue;
   }
 
-  // Distribution of commits per active day
-  // 1 commit (60%), 2 commits (25%), 3 commits (10%), 4-5 commits (5%)
+  // Distribution for rich, vibrant green activity
+  // ~35% get 2 commits, ~35% get 3-4 commits, ~20% get 5-6 commits, ~10% get 7-10 commits
   const roll = Math.random();
-  let numCommits = 1;
-  if (roll > 0.95) {
-    numCommits = Math.floor(Math.random() * 2) + 4; // 4 or 5
-  } else if (roll > 0.85) {
-    numCommits = 3;
-  } else if (roll > 0.60) {
-    numCommits = 2;
+  let numCommits = 2;
+  if (roll > 0.90) {
+    numCommits = Math.floor(Math.random() * 4) + 7; // 7-10
+  } else if (roll > 0.70) {
+    numCommits = Math.floor(Math.random() * 2) + 5; // 5-6
+  } else if (roll > 0.35) {
+    numCommits = Math.floor(Math.random() * 2) + 3; // 3-4
   }
 
   for (let i = 0; i < numCommits; i++) {
-    // Pick realistic hours between 09:00 and 22:59
     const commitDate = new Date(d);
-    const hour = Math.floor(Math.random() * 14) + 9;
+    const hour = Math.floor(Math.random() * 15) + 8; // Between 08:00 and 23:00
     const minute = Math.floor(Math.random() * 60);
     const second = Math.floor(Math.random() * 60);
     commitDate.setHours(hour, minute, second);
@@ -60,30 +59,32 @@ for (let d = new Date(oneYearAgo); d <= now; d.setDate(d.getDate() + 1)) {
 // Sort chronologically
 commitsToMake.sort((a, b) => a.getTime() - b.getTime());
 
-console.log(`Total commits planned: ${commitsToMake.length}`);
+console.log(`Total new commits planned: ${commitsToMake.length}`);
 
-// Initial README if not present
-const readmePath = path.join(__dirname, 'README.md');
-if (!fs.existsSync(readmePath)) {
-  fs.writeFileSync(
-    readmePath,
-    '# Contribution History\n\nAutomated activity and contribution tracker.\n'
-  );
-  execFileSync('git', ['add', 'README.md'], { cwd: __dirname });
+// Get existing commit count
+let completed = 0;
+try {
+  const existing = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+  if (existing && existing.commitNumber) {
+    completed = existing.commitNumber;
+  }
+} catch (e) {
+  // start from 0
 }
 
+const startNum = completed;
+const totalTarget = startNum + commitsToMake.length;
+
 // Execute commits in chronological order
-let completed = 0;
 for (const commitDate of commitsToMake) {
   const isoStr = commitDate.toISOString();
   const data = {
     date: isoStr,
     commitNumber: ++completed,
-    totalPlanned: commitsToMake.length,
+    totalPlanned: totalTarget,
   };
 
   fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2) + '\n');
-
   execFileSync('git', ['add', 'data.json'], { cwd: __dirname });
 
   const env = {
@@ -107,4 +108,4 @@ for (const commitDate of commitsToMake) {
   );
 }
 
-console.log(`Successfully created ${completed} commits!`);
+console.log(`Successfully created ${commitsToMake.length} new commits! Total commits in repo: ${completed}`);
